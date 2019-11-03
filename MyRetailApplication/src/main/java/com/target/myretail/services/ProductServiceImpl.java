@@ -22,6 +22,8 @@ import com.target.myretail.exceptions.InternalServerException;
 import com.target.myretail.exceptions.NoDataFoundException;
 import com.target.myretail.repositories.ProductRepository;
 
+import javassist.expr.Instanceof;
+
 /**
  * @author Ashwin
  *
@@ -48,7 +50,7 @@ public class ProductServiceImpl implements ProductService {
 	public List<Product> listAll() {
 		logger.info("begin list ALL");
 		List<Product> products = new ArrayList<>();
-		productRepository.findAll().forEach(products::add); 
+		productRepository.findAll().forEach(products::add);
 		logger.info("end list ALL with response {} ", products);
 		return products;
 	}
@@ -103,6 +105,28 @@ public class ProductServiceImpl implements ProductService {
 	@Override
 	public Product saveOrUpdate(Product product) {
 		logger.info("begin processing in saveOrUpdate() for product {}", product);
+		try {
+			ResponseEntity<String> result = restTemplate.getForEntity(product_details_url + product.getId(),
+					String.class);
+			if (null != result) {
+				JsonNode productNode = new ObjectMapper().readTree(result.getBody());
+				if (null == productNode) {
+					logger.error("No Data found for the id {}", product.getId());
+					throw new NoDataFoundException(new BaseError(Response.Status.BAD_REQUEST.getStatusCode(),
+							Response.Status.BAD_REQUEST.getReasonPhrase(), ErrorConstants.NO_DATA_FOUND_MSG,
+							ErrorConstants.NO_DATA_FOUND));
+				}
+			}
+		} catch (Exception exp) {
+			logger.error("exception in getById {} for id {}", exp, product.getId());
+			if (exp instanceof HttpClientErrorException || exp instanceof NoDataFoundException) {
+				throw new NoDataFoundException(new BaseError(Response.Status.BAD_REQUEST.getStatusCode(),
+						Response.Status.BAD_REQUEST.getReasonPhrase(), ErrorConstants.NO_DATA_FOUND_MSG,
+						ErrorConstants.NO_DATA_FOUND));
+			}
+			throw new InternalServerException(exp);
+		}
+
 		try {
 			productRepository.save(product);
 		} catch (Exception exp) {

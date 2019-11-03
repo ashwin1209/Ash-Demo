@@ -13,6 +13,8 @@ public final class ErrorConstants {
 	public static final String EMPTY_ID_CODE = "1001";
 	public static final String INVALID_ID_MSG = "Id contains other than alphanumeric";
 	public static final String INVALID_ID_CODE = "1002";
+	public static final String INVALID_PRODUCT_ID_MSG = "1003";
+	public static final String INVALID_PRODUCT_ID_CODE = "path Id and request data does not match";
 	private ErrorConstants() {
 		
 	}

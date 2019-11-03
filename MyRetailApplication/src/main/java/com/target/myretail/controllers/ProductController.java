@@ -1,7 +1,5 @@
 package com.target.myretail.controllers;
 
-import java.net.URI;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -14,7 +12,6 @@ import javax.ws.rs.core.Response;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.target.myretail.domain.Product;
 import com.target.myretail.exceptions.BadRequestException;
@@ -28,8 +25,8 @@ import com.target.myretail.services.ProductService;
 import com.target.myretail.validator.RequestValidator;
 
 /**
- * @author Ashwin
- * this class defines the CRUD operations on product entity over Rest API 
+ * @author Ashwin this class defines the CRUD operations on product entity over
+ *         Rest API
  */
 @Path("products")
 public class ProductController {
@@ -49,21 +46,21 @@ public class ProductController {
 		ResponseBuilder responseBuilder = null;
 		Product product = null;
 		try {
-			//validate the path variable Id
+			// validate the path variable Id
 			RequestValidator.validateId(id);
-			//retrieve product by its Id;
+			// retrieve product by its Id;
 			product = productService.getById(id);
 			if (null != product) {
-				//based on the response build the response entity type.
+				// based on the response build the response entity type.
 				responseBuilder = ResponseBuilderFactory.getBuilder("EntityResponse");
 				EntityResponse<Product> entityResponse = new EntityResponse<Product>();
 				entityResponse.setEntityObj(product);
-				//return Http Status Success with result.
+				// return Http Status Success with result.
 				return responseBuilder.buildResponse(Response.Status.OK, entityResponse);
 			}
 		} catch (Exception exception) {
 			logger.error("exception {}" + exception.getMessage());
-			//Build exception specific error response for better consumer readability
+			// Build exception specific error response for better consumer readability
 			responseBuilder = ResponseBuilderFactory.getBuilder("errorResponse");
 			if (exception instanceof NoDataFoundException) {
 				NoDataFoundException badRequestException = (NoDataFoundException) exception;
@@ -91,24 +88,36 @@ public class ProductController {
 		ResponseBuilder responseBuilder = null;
 		Product productResponse = null;
 		try {
-			//validate the path variable Id
+			// validate the path variable Id
 			RequestValidator.validateId(id);
-			//Save or update the product
+			//validate the requestBody
+			RequestValidator.validateRequest(id, product);
+			// Save or update the product
 			productResponse = productService.saveOrUpdate(product);
-			// Build the response entity based on result 
+			// Build the response entity based on result
 			if (null != productResponse) {
-				 URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                         .buildAndExpand(productResponse.getId())
-                         .toUri();
-				return Response.created(location).build();
+				responseBuilder = ResponseBuilderFactory.getBuilder("EntityResponse");
+				EntityResponse<Product> entityResponse = new EntityResponse<Product>();
+				entityResponse.setEntityObj(productResponse);
+				return responseBuilder.buildResponse(Response.Status.CREATED, entityResponse);
 			}
 		} catch (Exception exception) {
-			//Build exception specific error response for better consumer readability
+			// Build exception specific error response for better consumer readability
 			logger.error("exception {}" + exception.getMessage());
 			responseBuilder = ResponseBuilderFactory.getBuilder("errorResponse");
-			InternalServerException internalServerException = (InternalServerException) exception;
-			return responseBuilder.buildResponse(Response.Status.INTERNAL_SERVER_ERROR,
-					new BaseErrorResponse(internalServerException.getBaseError()));
+			if (exception instanceof NoDataFoundException) {
+				NoDataFoundException badRequestException = (NoDataFoundException) exception;
+				return responseBuilder.buildResponse(Response.Status.NO_CONTENT,
+						new BaseErrorResponse(badRequestException.getBaseError()));
+			} else if (exception instanceof BadRequestException) {
+				BadRequestException badRequestException = (BadRequestException) exception;
+				return responseBuilder.buildResponse(Response.Status.BAD_REQUEST,
+						new BaseErrorResponse(badRequestException.getBaseError()));
+			} else {
+				InternalServerException internalServerException = (InternalServerException) exception;
+				return responseBuilder.buildResponse(Response.Status.INTERNAL_SERVER_ERROR,
+						new BaseErrorResponse(internalServerException.getBaseError()));
+			}
 		}
 		return null;
 	}
