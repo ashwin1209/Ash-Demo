@@ -35,13 +35,9 @@ public class ProductServiceImpl implements ProductService {
 	static final String product_details_url = "https://redsky.target.com/v2/pdp/tcin/";
 	@Autowired
 	private RestTemplate restTemplate;
-
-	private ProductRepository productRepository;
-
+	
 	@Autowired
-	public ProductServiceImpl(ProductRepository productRepository) {
-		this.productRepository = productRepository;
-	}
+	private ProductRepository productRepository;
 
 	/**
 	 * this method returns the product list;

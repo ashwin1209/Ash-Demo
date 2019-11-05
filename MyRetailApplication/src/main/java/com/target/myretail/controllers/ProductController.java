@@ -31,12 +31,8 @@ import com.target.myretail.validator.RequestValidator;
 @Path("products")
 public class ProductController {
 	private static final Logger logger = LogManager.getLogger(ProductController.class);
-	private ProductService productService;
-
 	@Autowired
-	public void setProductService(ProductService productService) {
-		this.productService = productService;
-	}
+	private ProductService productService;
 
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
@@ -90,7 +86,7 @@ public class ProductController {
 		try {
 			// validate the path variable Id
 			RequestValidator.validateId(id);
-			//validate the requestBody
+			// validate the requestBody
 			RequestValidator.validateRequest(id, product);
 			// Save or update the product
 			productResponse = productService.saveOrUpdate(product);

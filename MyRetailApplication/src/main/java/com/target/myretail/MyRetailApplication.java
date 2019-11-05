@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author Ashwin
  *
  */
-@SpringBootApplication(scanBasePackages = {"com.target.myretail.*"})
+@SpringBootApplication
 public class MyRetailApplication {
 	
 	public static void main(String[] args) {
